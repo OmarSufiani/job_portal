@@ -1,0 +1,1 @@
+<?php echo 'Reusable functions here'; ?>
