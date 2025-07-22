@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 session_start();
 include '../database/db.php';
@@ -128,6 +127,3 @@ $conn->close();
 </form>
 
 <script src="../js/manageUser.js"></script>
-=======
-<?php echo 'Post a new job'; ?>
->>>>>>> 45a39b43c00407c36fae2a72151ba9a8e7f8caf6
