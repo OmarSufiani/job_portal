@@ -94,7 +94,7 @@ attachFormSubmitHandler('academics-form', 'academics.php');
 attachFormSubmitHandler('post-job-form', 'post_job.php');
 
 attachFormSubmitHandler('page-form', 'page.php');
-attachFormSubmitHandler('apply-user-form', 'apply.php');
+attachFormSubmitHandler('apply-form', 'advertised_jobs.php');
 attachFormSubmitHandler('submit-form', 'submit_application.php');
 attachFormSubmitHandler('employment-form', 'employment.php');
 attachFormSubmitHandler('status-form', 'status.php');
