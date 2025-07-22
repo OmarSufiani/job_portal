@@ -5,9 +5,15 @@ session_start();
 $success = '';
 $error = '';
 
+if (!isset($_SESSION['idNo'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+$user_id = $_SESSION['idNo'];
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = $_POST['user_id'] ?? '';
     $instituition_name = $_POST['instituition_name'] ?? '';
     $course_name = $_POST['course_name'] ?? '';
     $certificate_no = $_POST['certificate_no'] ?? '';
@@ -24,18 +30,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Database error: " . $stmt->error;
         }
     } else {
-        $error = "Please fill in all required fields (user, institution, course name, start date).";
+        $error = "Please fill in all required fields (institution, course name, start date).";
     }
 }
 
-// Fetch users
-$users = [];
-$result = $conn->query("SELECT idNo, FirstName FROM users ORDER BY FirstName ASC");
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
+// Fetch courses for current user
+$courseSnapshot = [];
+$stmt = $conn->prepare("SELECT instituition_name, course_name, certificate_no, start_date, end_date FROM other_courses WHERE user_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $courseSnapshot[] = $row;
 }
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -54,11 +62,6 @@ if ($result && $result->num_rows > 0) {
     <?php endif; ?>
 
     <form method="POST" id="courses-form" class="row g-3">
-         <div class="col-md-2">
-            <label>ID Number</label>
-            <input type="number" name="user_id"  class="form-control" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
-        </div>
-
         <div class="col-md-6">
             <label class="form-label">Institution Name</label>
             <input type="text" name="instituition_name" class="form-control" required>
@@ -84,10 +87,39 @@ if ($result && $result->num_rows > 0) {
             <input type="date" name="end_date" class="form-control">
         </div>
 
+        <input type="hidden" name="user_id" value="<?= htmlspecialchars($user_id) ?>">
+
         <div class="col-12">
             <button type="submit" class="btn btn-primary">Submit Course</button>
         </div>
     </form>
+
+    <?php if (!empty($courseSnapshot)): ?>
+        <h4 class="mt-5">Other Courses Snapshot</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Institution Name</th>
+                    <th>Course Name</th>
+                    <th>Certificate No</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($courseSnapshot as $row): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['instituition_name']) ?></td>
+                        <td><?= htmlspecialchars($row['course_name']) ?></td>
+                        <td><?= htmlspecialchars($row['certificate_no']) ?></td>
+                        <td><?= htmlspecialchars($row['start_date']) ?></td>
+                        <td><?= htmlspecialchars($row['end_date']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
 </body>
 </html>
+
 <script src="../js/manageUser.js"></script>

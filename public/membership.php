@@ -10,6 +10,7 @@ if (!isset($_SESSION['idNo'])) {
 $user_id = $_SESSION['idNo'];
 $success = $error = '';
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_POST['user_id'];
     $professional_body = $_POST['professional_body'];
@@ -27,6 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error = "Error: " . $stmt->error;
     }
+}
+
+// Always fetch snapshot (on page load or after form submission)
+$snapshot = [];
+$result = $conn->prepare("SELECT * FROM registration_membership WHERE user_id = ?");
+$result->bind_param("i", $user_id);
+$result->execute();
+$snapshotResult = $result->get_result();
+
+if ($snapshotResult && $snapshotResult->num_rows > 0) {
+    $snapshot = $snapshotResult->fetch_all(MYSQLI_ASSOC);
 }
 ?>
 
@@ -46,10 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form method="POST" id="membership-form" class="row g-3">
-         <div class="col-md-2">
-            <label>ID Number</label>
-            <input type="number" name="user_id"  class="form-control" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
-        </div>
+        <input type="hidden" name="user_id" value="<?= htmlspecialchars($user_id) ?>">
+
         <div class="col-md-6">
             <label>Professional Body</label>
             <input type="text" name="professional_body" class="form-control" required>
@@ -75,6 +85,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-primary">Save Membership</button>
         </div>
     </form>
+
+    <?php if (!empty($snapshot)): ?>
+        <h4 class="mt-5">📘 Membership Registration Snapshot</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Professional Body</th>
+                    <th>Membership Type</th>
+                    <th>Registration No</th>
+                    <th>Date Renewed</th>
+                    <th>Next Renewal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($snapshot as $row): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['professional_body']) ?></td>
+                        <td><?= htmlspecialchars($row['membership_type']) ?></td>
+                        <td><?= htmlspecialchars($row['regno']) ?></td>
+                        <td><?= htmlspecialchars($row['date_renewed']) ?></td>
+                        <td><?= htmlspecialchars($row['next_renewal']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
 </body>
 </html>
+
 <script src="../js/manageUser.js"></script>

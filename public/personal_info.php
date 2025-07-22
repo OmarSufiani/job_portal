@@ -4,56 +4,73 @@ session_start();
 
 $success = '';
 $error = '';
+$user_id = $_SESSION['idNo'] ?? '';
 
-// Make sure the user is logged in
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $user_id) {
+    // Check if record already exists for this user
+    $check = $conn->prepare("SELECT id FROM personal_info WHERE user_id = ?");
+    $check->bind_param("s", $user_id);
+    $check->execute();
+    $check->store_result();
 
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = $_POST['user_id'] ?? '';
-    $salutation = $_POST['salutation'] ?? '';
-    $lastname = $_POST['lastname'] ?? '';
-    $firstname = $_POST['firstname'] ?? '';
-    $secondname = $_POST['secondname'] ?? '';
-    $dob = $_POST['dob'] ?? null;
-    $gender = $_POST['gender'] ?? '';
-    $kra_pin = $_POST['kra_pin'] ?? '';
-    $disability_status = $_POST['disability_status'] ?? '';
-    $disability_details = $_POST['disability_details'] ?? '';
-    $regno_disability = $_POST['regno_disability'] ?? '';
-    $home_county = $_POST['home_county'] ?? '';
-    $constituency = $_POST['constituency'] ?? '';
-    $subcounty = $_POST['subcounty'] ?? '';
-    $ward = $_POST['ward'] ?? '';
-    $postall_adress = $_POST['postall_adress'] ?? '';
-    $postalcode = $_POST['postalcode'] ?? '';
-    $town = $_POST['town'] ?? '';
-    $mobile_number = $_POST['mobile_number'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $contact_person = $_POST['contact_person'] ?? '';
-    $contact_person_no = $_POST['contact_person_no'] ?? '';
-    $current_employer = $_POST['current_employer'] ?? '';
-    $position_held = $_POST['position_held'] ?? '';
-    $effective_date = $_POST['effective_date'] ?? null;
-
-    $stmt = $conn->prepare("INSERT INTO personal_info (
-        user_id, salutation, lastname, firstname, secondname, dob, gender, kra_pin,
-        disability_status, disability_details, regno_disability, home_county, constituency,
-        subcounty, ward, postall_adress, postalcode, town, mobile_number, email,
-        contact_person, contact_person_no, current_employer, position_held, effective_date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-    $stmt->bind_param("issssssssssssssssssssssss",
-        $user_id, $salutation, $lastname, $firstname, $secondname, $dob, $gender, $kra_pin,
-        $disability_status, $disability_details, $regno_disability, $home_county, $constituency,
-        $subcounty, $ward, $postall_adress, $postalcode, $town, $mobile_number, $email,
-        $contact_person, $contact_person_no, $current_employer, $position_held, $effective_date
-    );
-
-    if ($stmt->execute()) {
-        $success = "Personal information saved successfully.";
+    if ($check->num_rows > 0) {
+        $error = "You have already submitted personal information.";
     } else {
-        $error = "Error: " . $stmt->error;
+        $salutation = $_POST['salutation'] ?? '';
+        $lastname = $_POST['lastname'] ?? '';
+        $firstname = $_POST['firstname'] ?? '';
+        $secondname = $_POST['secondname'] ?? '';
+        $dob = $_POST['dob'] ?? null;
+        $gender = $_POST['gender'] ?? '';
+        $kra_pin = $_POST['kra_pin'] ?? '';
+        $disability_status = $_POST['disability_status'] ?? '';
+        $disability_details = $_POST['disability_details'] ?? '';
+        $regno_disability = $_POST['regno_disability'] ?? '';
+        $home_county = $_POST['home_county'] ?? '';
+        $constituency = $_POST['constituency'] ?? '';
+        $subcounty = $_POST['subcounty'] ?? '';
+        $ward = $_POST['ward'] ?? '';
+        $postall_adress = $_POST['postall_adress'] ?? '';
+        $postalcode = $_POST['postalcode'] ?? '';
+        $town = $_POST['town'] ?? '';
+        $mobile_number = $_POST['mobile_number'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $contact_person = $_POST['contact_person'] ?? '';
+        $contact_person_no = $_POST['contact_person_no'] ?? '';
+        $current_employer = $_POST['current_employer'] ?? '';
+        $position_held = $_POST['position_held'] ?? '';
+        $effective_date = $_POST['effective_date'] ?? null;
+
+        $stmt = $conn->prepare("INSERT INTO personal_info (
+            user_id, salutation, lastname, firstname, secondname, dob, gender, kra_pin,
+            disability_status, disability_details, regno_disability, home_county, constituency,
+            subcounty, ward, postall_adress, postalcode, town, mobile_number, email,
+            contact_person, contact_person_no, current_employer, position_held, effective_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param("issssssssssssssssssssssss",
+            $user_id, $salutation, $lastname, $firstname, $secondname, $dob, $gender, $kra_pin,
+            $disability_status, $disability_details, $regno_disability, $home_county, $constituency,
+            $subcounty, $ward, $postall_adress, $postalcode, $town, $mobile_number, $email,
+            $contact_person, $contact_person_no, $current_employer, $position_held, $effective_date
+        );
+
+        if ($stmt->execute()) {
+            $success = "Personal information saved successfully.";
+        } else {
+            $error = "Error: " . $stmt->error;
+        }
     }
+}
+
+// Fetch personal info to show snapshot if it exists
+$personalInfo = null;
+if ($user_id) {
+    $result = $conn->prepare("SELECT * FROM personal_info WHERE user_id = ?");
+    $result->bind_param("s", $user_id);
+    $result->execute();
+    $res = $result->get_result();
+    $personalInfo = $res->fetch_assoc();
 }
 ?>
 
@@ -72,10 +89,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
 
-    <form method="POST"  id="personal-form" class="row g-3">
+    <form method="POST" id="personal-form" class="row g-3">
         <div class="col-md-2">
             <label>ID Number</label>
-            <input type="number" name="user_id"  class="form-control" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
+            <input type="number" name="user_id" class="form-control" value="<?= htmlspecialchars($user_id) ?>" readonly>
         </div>
 
         <div class="col-md-2">
@@ -138,6 +155,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="submit" class="btn btn-primary">Submit Personal Info</button>
         </div>
     </form>
+
+    <?php if (!empty($personalInfo)): ?>
+        <h4 class="mt-5">Personal Information Snapshot</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>DOB</th>
+                    <th>Gender</th>
+                    <th>KRA PIN</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Disability</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><?= htmlspecialchars($personalInfo['salutation'] . ' ' . $personalInfo['firstname'] . ' ' . $personalInfo['secondname'] . ' ' . $personalInfo['lastname']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['dob']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['gender']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['kra_pin']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['email']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['mobile_number']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['disability_status']) ?></td>
+                    <td><?= htmlspecialchars($personalInfo['postall_adress'] . ', ' . $personalInfo['town']) ?></td>
+                </tr>
+            </tbody>
+        </table>
+    <?php endif; ?>
 </body>
 </html>
+
 <script src="../js/manageUser.js"></script>

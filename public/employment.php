@@ -37,6 +37,20 @@ if ($result && $result->num_rows > 0) {
         $users[] = $row;
     }
 }
+
+// Fetch employment snapshot for current user
+$employmentSnapshot = [];
+if (isset($_SESSION['idNo'])) {
+    $uid = $_SESSION['idNo'];
+    $stmt = $conn->prepare("SELECT designation, gross_salary, department, duties, start_date, end_date FROM employment_details WHERE user_id = ?");
+    $stmt->bind_param("i", $uid);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $employmentSnapshot[] = $row;
+    }
+    $stmt->close();
+}
 ?>
 
 <!DOCTYPE html>
@@ -55,12 +69,6 @@ if ($result && $result->num_rows > 0) {
     <?php endif; ?>
 
     <form method="POST" id="employment-form" class="row g-3">
-         <div class="col-md-2">
-            <label>ID Number</label>
-            <input type="number" name="user_id"  class="form-control" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
-        </div>
-       
-
         <div class="col-md-6">
             <label class="form-label">Designation</label>
             <input type="text" name="designation" class="form-control" required>
@@ -91,10 +99,42 @@ if ($result && $result->num_rows > 0) {
             <input type="date" name="end_date" class="form-control">
         </div>
 
+        <div class="col-md-2">
+            <input type="hidden" name="user_id" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
+        </div>
+
         <div class="col-12">
             <button type="submit" class="btn btn-primary">Save Employment Details</button>
         </div>
     </form>
+
+    <?php if (!empty($employmentSnapshot)): ?>
+        <h4 class="mt-5">Employment Records Snapshot</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Designation</th>
+                    <th>Gross Salary</th>
+                    <th>Department</th>
+                    <th>Duties</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($employmentSnapshot as $row): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['designation']) ?></td>
+                        <td><?= htmlspecialchars($row['gross_salary']) ?></td>
+                        <td><?= htmlspecialchars($row['department']) ?></td>
+                        <td><?= htmlspecialchars($row['duties']) ?></td>
+                        <td><?= htmlspecialchars($row['start_date']) ?></td>
+                        <td><?= htmlspecialchars($row['end_date']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
 </body>
 </html>
 <script src="../js/manageUser.js"></script>

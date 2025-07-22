@@ -10,8 +10,8 @@ if (!isset($_SESSION['idNo'])) {
 $user_id = $_SESSION['idNo'];
 $success = $error = '';
 
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id = $_POST['user_id'];
     $instituition_name = $_POST['instituition_name'];
     $admno = $_POST['admno'];
     $area_of_study = $_POST['area_of_study'];
@@ -35,6 +35,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Error: " . $stmt->error;
     }
 }
+
+// Fetch snapshot
+$snapshot = [];
+$snapshotStmt = $conn->prepare("SELECT * FROM professional_bodies WHERE user_id = ?");
+$snapshotStmt->bind_param("i", $user_id);
+$snapshotStmt->execute();
+$result = $snapshotStmt->get_result();
+
+if ($result && $result->num_rows > 0) {
+    $snapshot = $result->fetch_all(MYSQLI_ASSOC);
+}
 ?>
 
 <!DOCTYPE html>
@@ -52,11 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
 
-    <form method="POST"  id="professional-form" class="row g-3">
-          <div class="col-md-2">
-            <label>ID Number</label>
-            <input type="number" name="user_id"  class="form-control" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
-        </div>
+    <form method="POST" id="professional-form" class="row g-3">
+        <input type="hidden" name="user_id" value="<?= htmlspecialchars($user_id) ?>">
+
         <div class="col-md-6">
             <label>Institution Name</label>
             <input type="text" name="instituition_name" class="form-control" required>
@@ -110,6 +119,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-primary">Save</button>
         </div>
     </form>
+
+    <?php if (!empty($snapshot)): ?>
+        <h4 class="mt-5">📘 Professional Body Snapshot</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Institution Name</th>
+                    <th>Admission No</th>
+                    <th>Area of Study</th>
+                    <th>Specialization</th>
+                    <th>Award</th>
+                    <th>Course</th>
+                    <th>Grade</th>
+                    <th>Examiner</th>
+                    <th>Certificate No</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Graduation Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($snapshot as $row): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($row['instituition_name']) ?></td>
+                        <td><?= htmlspecialchars($row['admno']) ?></td>
+                        <td><?= htmlspecialchars($row['area_of_study']) ?></td>
+                        <td><?= htmlspecialchars($row['specialization']) ?></td>
+                        <td><?= htmlspecialchars($row['award']) ?></td>
+                        <td><?= htmlspecialchars($row['course']) ?></td>
+                        <td><?= htmlspecialchars($row['grade']) ?></td>
+                        <td><?= htmlspecialchars($row['examiner']) ?></td>
+                        <td><?= htmlspecialchars($row['certificate_no']) ?></td>
+                        <td><?= htmlspecialchars($row['start_date']) ?></td>
+                        <td><?= htmlspecialchars($row['end_date']) ?></td>
+                        <td><?= htmlspecialchars($row['graduation_date']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
 </body>
 </html>
+
 <script src="../js/manageUser.js"></script>
