@@ -16,7 +16,6 @@ if (!isset($_SESSION['idNo'])) {
 } else {
     $idno = $_SESSION['idNo'];
 
-    // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $instituition_name = $_POST['instituition_name'];
         $admno = $_POST['admno'];
@@ -31,18 +30,20 @@ if (!isset($_SESSION['idNo'])) {
         $end_date = $_POST['end_date'];
         $graduation_date = $_POST['graduation_date'];
 
-        $stmt = $conn->prepare("INSERT INTO academic_qualifications (user_id, instituition_name, admno, area_of_study, specialization, award, course, grade, examiner, certificate_no, start_date, end_date, graduation_date) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Always insert a new record
+        $stmt = $conn->prepare("INSERT INTO academic_qualifications 
+            (user_id, instituition_name, admno, area_of_study, specialization, award, course, grade, examiner, certificate_no, start_date, end_date, graduation_date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("issssssssssss", $idno, $instituition_name, $admno, $area_of_study, $specialization, $award, $course, $grade, $examiner, $certificate_no, $start_date, $end_date, $graduation_date);
 
         if ($stmt->execute()) {
-            $success = "Academic qualification submitted successfully.";
+            $success = "Academic qualification added successfully.";
         } else {
-            $error = "Error saving data: " . $stmt->error;
+            $error = "Error inserting data: " . $stmt->error;
         }
     }
 
-    // Fetch all qualifications for the logged-in user
+    // Fetch existing data for snapshot
     $snapshot = [];
     $result = $conn->prepare("SELECT * FROM academic_qualifications WHERE user_id = ?");
     $result->bind_param("i", $idno);
@@ -54,6 +55,8 @@ if (!isset($_SESSION['idNo'])) {
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html>

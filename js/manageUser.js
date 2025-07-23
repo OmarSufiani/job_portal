@@ -103,3 +103,5 @@ attachFormSubmitHandler('referees-form', 'referees.php');
 attachFormSubmitHandler('professional-form', 'professional_bodies.php');
 attachFormSubmitHandler('personal-form', 'personal_info.php');
 attachFormSubmitHandler('courses-form', 'other_courses.php');
+attachFormSubmitHandler('editModal', 'edit_job.php');
+attachFormSubmitHandler('deleteModal', 'delete_job.php');

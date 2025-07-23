@@ -5,9 +5,15 @@ session_start();
 $success = '';
 $error = '';
 
+// Check if user is logged in
+if (!isset($_SESSION['idNo'])) {
+    die("Access denied. Please login.");
+}
+
+$user_id = $_SESSION['idNo'];
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = $_POST['user_id'] ?? '';
     $designation = $_POST['designation'] ?? '';
     $gross_salary = $_POST['gross_salary'] ?? '';
     $department = $_POST['department'] ?? '';
@@ -15,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $start_date = $_POST['start_date'] ?? '';
     $end_date = $_POST['end_date'] ?? null;
 
-    if ($user_id && $designation && $department && $start_date) {
+    if ($designation && $department && $start_date) {
         $stmt = $conn->prepare("INSERT INTO employment_details (user_id, designation, gross_salary, department, duties, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("issssss", $user_id, $designation, $gross_salary, $department, $duties, $start_date, $end_date);
 
@@ -24,32 +30,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $error = "Database error: " . $stmt->error;
         }
+        $stmt->close();
     } else {
-        $error = "Please fill in all required fields (user, designation, department, start date).";
+        $error = "Please fill in all required fields (designation, department, start date).";
     }
 }
 
-// Fetch users
-$users = [];
-$result = $conn->query("SELECT idNo, FirstName FROM users ORDER BY FirstName ASC");
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
-}
+// No prefill
+$formData = [];
 
-// Fetch employment snapshot for current user
+// Fetch all employment records for snapshot table
 $employmentSnapshot = [];
-if (isset($_SESSION['idNo'])) {
-    $uid = $_SESSION['idNo'];
-    $stmt = $conn->prepare("SELECT designation, gross_salary, department, duties, start_date, end_date FROM employment_details WHERE user_id = ?");
-    $stmt->bind_param("i", $uid);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    while ($row = $res->fetch_assoc()) {
-        $employmentSnapshot[] = $row;
-    }
-    $stmt->close();
+$stmt = $conn->prepare("SELECT designation, gross_salary, department, duties, start_date, end_date FROM employment_details WHERE user_id = ? ORDER BY id DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
+while ($row = $res->fetch_assoc()) {
+    $employmentSnapshot[] = $row;
+}
+$stmt->close();
+
+// Helper function
+function old($key, $data) {
+    return htmlspecialchars($data[$key] ?? '');
 }
 ?>
 
@@ -68,40 +71,38 @@ if (isset($_SESSION['idNo'])) {
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
 
-    <form method="POST" id="employment-form" class="row g-3">
+    <form method="POST"  id="employment-form" class="row g-3">
         <div class="col-md-6">
             <label class="form-label">Designation</label>
-            <input type="text" name="designation" class="form-control" required>
+            <input type="text" name="designation" class="form-control" required value="<?= old('designation', $formData) ?>">
         </div>
 
         <div class="col-md-6">
             <label class="form-label">Gross Salary</label>
-            <input type="text" name="gross_salary" class="form-control">
+            <input type="text" name="gross_salary" class="form-control" value="<?= old('gross_salary', $formData) ?>">
         </div>
 
         <div class="col-md-6">
             <label class="form-label">Department</label>
-            <input type="text" name="department" class="form-control" required>
+            <input type="text" name="department" class="form-control" required value="<?= old('department', $formData) ?>">
         </div>
 
         <div class="col-md-12">
             <label class="form-label">Duties</label>
-            <textarea name="duties" class="form-control" rows="3"></textarea>
+            <textarea name="duties" class="form-control" rows="3"><?= old('duties', $formData) ?></textarea>
         </div>
 
         <div class="col-md-6">
             <label class="form-label">Start Date</label>
-            <input type="date" name="start_date" class="form-control" required>
+            <input type="date" name="start_date" class="form-control" required value="<?= old('start_date', $formData) ?>">
         </div>
 
         <div class="col-md-6">
             <label class="form-label">End Date</label>
-            <input type="date" name="end_date" class="form-control">
+            <input type="date" name="end_date" class="form-control" value="<?= old('end_date', $formData) ?>">
         </div>
 
-        <div class="col-md-2">
-            <input type="hidden" name="user_id" value="<?= htmlspecialchars($_SESSION['idNo']) ?>" readonly>
-        </div>
+        <input type="hidden" name="user_id" value="<?= htmlspecialchars($user_id) ?>">
 
         <div class="col-12">
             <button type="submit" class="btn btn-primary">Save Employment Details</button>
@@ -137,4 +138,6 @@ if (isset($_SESSION['idNo'])) {
     <?php endif; ?>
 </body>
 </html>
+
+
 <script src="../js/manageUser.js"></script>

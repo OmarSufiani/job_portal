@@ -8,27 +8,40 @@ error_reporting(E_ALL);
     padding: 25px 30px;
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    max-width: 400px;
+    max-width: 1000px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0 auto;
+    margin: 20px auto;
+    box-sizing: border-box;
   }
 
-  .form-container label {
-    display: block;
-    margin-bottom: 15px;
+  .form-container h3 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+  }
+
+  #user-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 300px;
+  }
+
+  .form-group label {
     font-weight: 600;
     color: #34495e;
     font-size: 14px;
+    margin-bottom: 5px;
   }
 
-  .form-container input[type="text"],
-  .form-container input[type="email"],
-  .form-container input[type="password"],
-  .form-container input[type="number"],
-  .form-container select {
+  .form-group input,
+  .form-group select {
     width: 100%;
     padding: 8px 10px;
-    margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 14px;
@@ -36,16 +49,13 @@ error_reporting(E_ALL);
     transition: border-color 0.3s;
   }
 
-  .form-container input[type="text"]:focus,
-  .form-container input[type="email"]:focus,
-  .form-container input[type="password"]:focus,
-  .form-container input[type="number"]:focus,
-  .form-container select:focus {
+  .form-group input:focus,
+  .form-group select:focus {
     border-color: teal;
     outline: none;
   }
 
-  .form-container button[type="submit"] {
+  button[type="submit"] {
     background-color: teal;
     color: white;
     border: none;
@@ -57,13 +67,13 @@ error_reporting(E_ALL);
     margin-top: 10px;
   }
 
-  .form-container button[type="submit"]:hover {
+  button[type="submit"]:hover {
     background-color: #006666;
   }
 
-  @media (max-width: 480px) {
-    .form-container {
-      padding: 20px 15px;
+  @media (max-width: 600px) {
+    .form-group {
+      flex: 1 1 100%;
     }
   }
 </style>
@@ -73,34 +83,42 @@ error_reporting(E_ALL);
   <form id="user-form" method="POST">
       <input type="hidden" name="id" value="">
 
-      <label>ID No:
+      <div class="form-group">
+          <label for="idNo">ID No:</label>
           <input name="idNo" type="number" required>
-      </label>
+      </div>
 
-      <label>Email:
+      <div class="form-group">
+          <label for="email">Email:</label>
           <input name="email" type="email" required>
-      </label>
+      </div>
 
-      <label>First Name:
+      <div class="form-group">
+          <label for="FirstName">First Name:</label>
           <input name="FirstName" type="text" required>
-      </label>
+      </div>
 
-      <label>Last Name:
+      <div class="form-group">
+          <label for="LastName">Last Name:</label>
           <input name="LastName" type="text" required>
-      </label>
+      </div>
 
-      <label>Password:
+      <div class="form-group">
+          <label for="password">Password:</label>
           <input name="password" type="password" required>
-      </label>
+      </div>
 
-      <label>Role:
+      <div class="form-group">
+          <label for="role">Role:</label>
           <select name="role" required>
               <option value="">-- Select Role --</option>
               <option value="user">User</option>
               <option value="admin">Admin</option>
           </select>
-      </label>
+      </div>
 
-      <button type="submit">Save</button>
+      <div class="form-group" style="flex: 1 1 100%;">
+          <button type="submit">Save</button>
+      </div>
   </form>
 </div>

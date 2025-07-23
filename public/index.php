@@ -1,5 +1,6 @@
 <?php
 session_start();
+include '../database/db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
@@ -218,7 +219,7 @@ if (!isset($_SESSION['user_id'])) {
 
        <div id="message-box"></div>
 
-<p>Welcome to this  dashboard</p>
+<p>welcome</p>
 
         </div>
 

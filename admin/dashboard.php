@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+include '../database/db.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit();
@@ -184,7 +184,7 @@ if (!isset($_SESSION['user_id'])) {
     <a href="#" onclick="loadPage('post_job.php')">📋 Post Jobs</a>
     <a href="#" onclick="loadPage('apply_intern.php')">🎓 Post Internships</a>
     <a href="#" onclick="loadPage('status.php')">📈 View Applications</a>
-    <a href="#" onclick="loadPage('vacancies.php')">📢 Vacancies</a>
+    <a href="#" onclick="loadPage('jobs.php')">📢 Vacancies</a>
     <a href="#" onclick="loadPage('interview.php')">🗓️ Interview</a>
     <a href="#" onclick="loadPage('shortlisting.php')">✅ Shortlisting</a>
     <a href="#" onclick="loadPage('selection.php')">🎯 Selection</a>
@@ -202,6 +202,111 @@ if (!isset($_SESSION['user_id'])) {
        <div id="message-box"></div>
 
 <p>Welcome to this admin dashboard</p>
+
+
+
+<?php
+
+
+// Count Users
+$totalUsers = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
+
+// Count Admins
+$totalAdmins = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")->fetch_assoc()['count'];
+
+// Count Applicants (users who applied)
+$totalApplicants = $conn->query("SELECT COUNT(DISTINCT user_id) as count FROM status")->fetch_assoc()['count'];
+
+// Count Jobs Available
+$availableJobs = $conn->query("SELECT COUNT(*) as count FROM jobs WHERE advert_close_date >= CURDATE()")->fetch_assoc()['count'];
+
+// Count Total Applications
+$totalApplications = $conn->query("SELECT COUNT(*) as count FROM status")->fetch_assoc()['count'];
+
+// Nearest Job Deadline
+$deadlineRes = $conn->query("SELECT advert_close_date FROM jobs WHERE advert_close_date >= CURDATE() ORDER BY advert_close_date ASC LIMIT 1");
+$nextDeadline = $deadlineRes->num_rows > 0 ? $deadlineRes->fetch_assoc()['advert_close_date'] : null;
+?>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">👤 Users</h5>
+                <p class="card-text fs-4"><?= $totalUsers ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h5 class="card-title">🧑‍💼 Admins</h5>
+                <p class="card-text fs-4"><?= $totalAdmins ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <h5 class="card-title">📨 Applicants</h5>
+                <p class="card-text fs-4"><?= $totalApplicants ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">📢 Jobs Available</h5>
+                <p class="card-text fs-4"><?= $availableJobs ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-bg-secondary">
+            <div class="card-body">
+                <h5 class="card-title">📌 Jobs Applied</h5>
+                <p class="card-text fs-4"><?= $totalApplications ?></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">⏳ Countdown to Deadline</h5>
+                <?php if ($nextDeadline): ?>
+                    <p class="card-text fs-5" id="countdown">Loading...</p>
+                    <script>
+                        const deadline = new Date("<?= $nextDeadline ?>T23:59:59").getTime();
+
+                        const countdownInterval = setInterval(() => {
+                            const now = new Date().getTime();
+                            const distance = deadline - now;
+
+                            if (distance < 0) {
+                                clearInterval(countdownInterval);
+                                document.getElementById("countdown").innerText = "Closed";
+                                return;
+                            }
+
+                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+                            document.getElementById("countdown").innerText = `${days}d : ${hours}h : ${minutes}m`;
+                        }, 1000);
+                    </script>
+                <?php else: ?>
+                    <p class="card-text">No Open Jobs</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
         </div>
 

@@ -12,22 +12,37 @@ $user = $res->fetch_assoc();
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 500px;
-        margin: 0 auto;
+        max-width: 1000px;
+        margin: 20px auto;
+        box-sizing: border-box;
     }
 
-    .form-container label {
-        display: block;
-        margin-bottom: 15px;
-        font-size: 14px;
+    .form-container h3 {
+        margin-bottom: 20px;
+        color: #2c3e50;
+    }
+
+    #user-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 300px;
+    }
+
+    .form-group label {
+        font-weight: 600;
         color: #333;
+        font-size: 14px;
+        margin-bottom: 5px;
     }
 
-    .form-container input[type="text"],
-    .form-container input[type="email"],
-    .form-container input[type="password"],
-    .form-container input[type="number"],
-    .form-container select {
+    .form-group input,
+    .form-group select {
         width: 100%;
         padding: 10px;
         border: 1px solid #ccc;
@@ -36,25 +51,25 @@ $user = $res->fetch_assoc();
         box-sizing: border-box;
     }
 
-    .form-container button {
+    button[type="submit"] {
         background-color: teal;
         color: white;
-        padding: 10px 16px;
         border: none;
+        padding: 12px 22px;
+        font-size: 16px;
         border-radius: 6px;
-        font-size: 14px;
         cursor: pointer;
+        transition: background-color 0.3s;
         margin-top: 10px;
-        transition: background 0.3s ease;
     }
 
-    .form-container button:hover {
+    button[type="submit"]:hover {
         background-color: #007777;
     }
 
     @media (max-width: 600px) {
-        .form-container {
-            padding: 15px;
+        .form-group {
+            flex: 1 1 100%;
         }
     }
 </style>
@@ -65,34 +80,42 @@ $user = $res->fetch_assoc();
 
         <input type="hidden" name="id" value="<?= htmlspecialchars($user['id']) ?>">
 
-        <label>ID No:
+        <div class="form-group">
+            <label>ID No:</label>
             <input type="number" name="idNo" value="<?= htmlspecialchars($user['idNo']) ?>" required>
-        </label>
+        </div>
 
-        <label>Email:
+        <div class="form-group">
+            <label>Email:</label>
             <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
-        </label>
+        </div>
 
-        <label>First Name:
+        <div class="form-group">
+            <label>First Name:</label>
             <input type="text" name="FirstName" value="<?= htmlspecialchars($user['FirstName']) ?>" required>
-        </label>
+        </div>
 
-        <label>Last Name:
+        <div class="form-group">
+            <label>Last Name:</label>
             <input type="text" name="LastName" value="<?= htmlspecialchars($user['LastName']) ?>" required>
-        </label>
+        </div>
 
-        <label>New Password:
+        <div class="form-group">
+            <label>New Password:</label>
             <input type="password" name="password" placeholder="Leave blank to keep current">
-        </label>
+        </div>
 
-        <label>Role:
+        <div class="form-group">
+            <label>Role:</label>
             <select name="role" required>
                 <option value="">-- Select Role --</option>
                 <option value="user" <?= $user['role'] === 'user' ? 'selected' : '' ?>>User</option>
                 <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
             </select>
-        </label>
+        </div>
 
-        <button type="submit">Update</button>
+        <div class="form-group" style="flex: 1 1 100%;">
+            <button type="submit">Update</button>
+        </div>
     </form>
 </div>
